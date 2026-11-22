@@ -1,0 +1,43 @@
+name: Run Unit Tests and Collect Coverage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x' 
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --no-restore
+
+    - name: Run tests with coverage
+      run: dotnet test OrderSystemTests/OrderSystemTests.csproj --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+    - name: Generate coverage report
+      run: |
+        reportgenerator -reports:./TestResults/*/coverage.cobertura.xml -targetdir:./TestResults/CoverageReport -reporttypes:Html
+      env:
+        REPORT_GENERATOR_VERSION: '4.8.12'
+
+    - name: Upload coverage report artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: CoverageReport
+        path: ./TestResults/CoverageReport
