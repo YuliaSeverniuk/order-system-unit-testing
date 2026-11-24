@@ -14,30 +14,30 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '6.0.x' 
+        dotnet-version: '8.0.x'
 
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore OrderSystem.sln
 
     - name: Build solution
-      run: dotnet build --no-restore
+      run: dotnet build OrderSystem.sln --no-restore
 
     - name: Run tests with coverage
-      run: dotnet test OrderSystemTests/OrderSystemTests.csproj --collect:"XPlat Code Coverage" --results-directory ./TestResults
+      run: dotnet test OrderSystemTests/OrderSystemTests.csproj --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+    - name: Install ReportGenerator
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.6.1
 
     - name: Generate coverage report
-      run: |
-        reportgenerator -reports:./TestResults/*/coverage.cobertura.xml -targetdir:./TestResults/CoverageReport -reporttypes:Html
-      env:
-        REPORT_GENERATOR_VERSION: '4.8.12'
+      run: reportgenerator -reports:"./TestResults/*/coverage.cobertura.xml" -targetdir:./TestResults/CoverageReport -reporttypes:Html
 
     - name: Upload coverage report artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: CoverageReport
         path: ./TestResults/CoverageReport
